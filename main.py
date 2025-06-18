@@ -1,43 +1,67 @@
+from abc import ABC, abstractmethod
+
+
+class AbstractProduct(ABC):
+    @abstractmethod
+    def get_description(self):
+        pass
+
+
 class Product:
     def __init__(self, name: str, quantity: int, price: float):
         self.name = name
         self.quantity = quantity
-        self.price = price
-
+        self.__price = price
 
     def __add__(self, other):
         if isinstance(other, Product):
             new_quantity = self.quantity + other.quantity
-            new_price = (self.price + other.price) * 2
+            new_price = (self.__price * self.quantity + other.__price * other.quantity) / new_quantity
             return Product(f"{self.name} + {other.name}", new_quantity, new_price)
         else:
             raise TypeError("Можно складывать только объекты Product")
 
     def __lt__(self, other):
         if isinstance(other, Product):
-            return self.price
+            return self.__price < other.__price
         else:
             raise TypeError("Можно сравнивать только объекты Product")
 
     def __gt__(self, other):
         if isinstance(other, Product):
-            return self.price
+            return self.__price > other.__price
         else:
             raise TypeError("Можно сравнивать только объекты Product")
 
     def __str__(self):
-        return f"{self.name} (Количество: {self.quantity}, Цена: {self.price})"
+        return f"{self.name} (Количество: {self.quantity}, Цена: {self.__price})"
+
+    @property
+    def get_price(self):
+        return self.__price
+
+    # Имена функции и декоратора не совпадают; метод доступа к свойству не создан
+    @get_price.setter
+    def get_price(self, new_price):
+        if new_price <= 0:
+            raise ValueError("Цена не может быть меньше нуля!")
+        else:
+            self.__price = new_price
 
 
-class Book(Product):
+class Book(Product, AbstractProduct):
     def __init__(self, name: str, quantity: int, price: float, author: str):
-        self.name = name
-        self.quantity = quantity
-        self.price = price
+        super().__init__(name, quantity, price)
         self.author = author
 
+    def _Book__price(self, __price):
+        return self.__price
+
     def __str__(self):
-        return f"Книга: {self.name}, Автор: {self.author} (Количество: {self.quantity}, Цена: {self.price})"
+        return f"Книга: {self.name}, Автор: {self.author} (Количество: {self.quantity}, Цена: {self.get_price})"
+
+    def get_description(self):
+        return f"Книга: {self.name}, Автор: {self.author}"
 
 
 class Laptop(Product):
@@ -46,7 +70,7 @@ class Laptop(Product):
         self.brand = brand
 
     def __str__(self):
-        return f"Ноутбук: {self.name}, Бренд: {self.brand} (Количество: {self.quantity}, Цена: {self.price})"
+        return f"Ноутбук: {self.name}, Бренд: {self.brand} (Количество: {self.quantity}, Цена: {self.get_price})"
 
 
 try:
@@ -56,7 +80,7 @@ try:
     # Синтаксическая ошибка в Laptop (код не запустится)
     # laptop = Laptop("Test", 1, 50000, "TestBrand")
 
-except SyntaxError as e:
-    print("Синтаксическая ошибка:", e)
 except ValueError as e:
     print("Ошибка значения:", e)
+except SyntaxError as e:
+    print("Синтаксическая ошибка:", e)
